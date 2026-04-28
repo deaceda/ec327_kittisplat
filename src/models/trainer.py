@@ -76,9 +76,9 @@ class SplatTrainer:
         cx, cy = K[0, 2], K[1, 2]
         
         # 3. Project Gaussians into 2D screen space
-        # FIX: Explicitly name block_width and clip_thresh.
+        # FIX: Removed camera.world_view_transform so the parameters align perfectly
         xys, depths, radii, conics, comp, num_tiles_hit, cov3d = project_gaussians(
-            means3D, scales, 1.0, rotations, viewmat, camera.world_view_transform, 
+            means3D, scales, 1.0, rotations, viewmat, 
             fx, fy, cx, cy, camera.image_height, camera.image_width, 
             block_width=16, clip_thresh=0.01
         )
@@ -87,7 +87,6 @@ class SplatTrainer:
         xys.retain_grad()
         
         # 4. Rasterize the 2D splats into an RGB image
-        # FIX: Explicitly assign bg_color to the 'background' keyword argument.
         render_colors, render_alphas = rasterize_gaussians(
             xys, depths, radii, conics, num_tiles_hit, 
             sh_dc, opacities, camera.image_height, camera.image_width, 
