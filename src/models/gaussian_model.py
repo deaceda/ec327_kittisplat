@@ -49,7 +49,7 @@ class GaussianModel(nn.Module):
 
         # 4. Opacity (alpha):
         # Initialize to a low value (e.g., 0.1) using inverse sigmoid
-        opacities = torch.logit(0.1 * torch.ones((num_pts, 1), device=device))
+        opacities = torch.logit(0.5 * torch.ones((num_pts, 1), device=device))
 
         # Register as optimizable parameters
         self._xyz = nn.Parameter(fused_point_cloud.requires_grad_(True))

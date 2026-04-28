@@ -15,12 +15,12 @@ class SplatTrainer:
         # Define learning rates for each parameter group
         self.optimizer = torch.optim.Adam([
             {'params': [self.model._xyz], 'lr': 0.00016, "name": "xyz"},
-            {'params': [self.model._features_dc], 'lr': 0.0025, "name": "f_dc"},
-            {'params': [self.model._features_rest], 'lr': 0.000125, "name": "f_rest"},
-            {'params': [self.model._opacity], 'lr': 0.05, "name": "opacity"},
+            {'params': [self.model._features_dc], 'lr': 0.01, "name": "f_dc"}, # Increased from 0.0025
+            {'params': [self.model._features_rest], 'lr': 0.0005, "name": "f_rest"}, # Increased from 0.000125
+            {'params': [self.model._opacity], 'lr': 0.1, "name": "opacity"}, # Increased from 0.05
             {'params': [self.model._scaling], 'lr': 0.005, "name": "scaling"},
             {'params': [self.model._rotation], 'lr': 0.001, "name": "rotation"}
-        ], lr=0.0, eps=1e-15)
+        ], lr=0.001, eps=1e-15) # Changed base LR from 0.0 to 0.001 for stability
 
     def train(self):
         self.model.train()
