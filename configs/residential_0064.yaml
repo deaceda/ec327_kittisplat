@@ -1,9 +1,9 @@
-# configs/residential_0079.yaml
+# configs/residential_064.yaml
 # Team KITTI Splat Configuration
 
 experiment:
-  name: "residential_0079"
-  workspace: "output/exp_0079"
+  name: "residential_0064"
+  workspace: "output/exp_0064"
   device: "cuda"
 
 data:
