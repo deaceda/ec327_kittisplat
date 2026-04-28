@@ -2,6 +2,7 @@ import torch
 from tqdm import tqdm
 from src.models.loss_functions import combined_loss
 from gsplat import project_gaussians, rasterize_gaussians
+from src.utils.sh_utils import SH2RGB
 
 class SplatTrainer:
     def __init__(self, gaussian_model, dataset, densifier=None, iterations=30000, device="cuda"):
