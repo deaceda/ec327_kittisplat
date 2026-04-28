@@ -81,7 +81,7 @@ class KittiDataset:
         
         # 3. Locate ground-truth images and OXTS trajectory files
         self.image_paths = sorted(glob.glob(os.path.join(self.image_dir, "*.png")))
-        self.oxts_paths = sorted(glob.glob(os.path.join(self.oxts_dir, "*.txt")))
+        self.oxts_paths = sorted(glob.glob(os.path.join(self.oxts_dir, "[0-9]*.txt")))
         self.num_frames = len(self.image_paths)
         
         if self.num_frames == 0 or len(self.oxts_paths) == 0:
