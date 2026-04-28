@@ -51,17 +51,23 @@ class KittiDataset:
         self.oxts_paths = sorted(glob.glob(os.path.join(config['data']['oxts_dir'], "[0-9]*.txt")))[:50]
         self.device = config['experiment']['device']
 
-        # 2. Parse Projection (Intrinsics)
+        # 2. Parse Projection (Intrinsics) and Rectification
         calib_cam = parse_kitti_calib(config['data']['calib_cam_to_cam'])
         P2 = calib_cam['P_rect_02'].reshape(3, 4)
         self.fx, self.fy, self.cx, self.cy = P2[0,0], P2[1,1], P2[0,2], P2[1,2]
+        
+        # FIX: Extract the Rectification Matrix
+        R_rect_00 = np.eye(4)
+        R_rect_00[:3, :3] = calib_cam['R_rect_00'].reshape(3, 3)
 
         # 3. Parse Velo-to-Cam (Extrinsic Offset)
-        # This is the "bridge" that connects the LiDAR points to the Camera view
         calib_v2c = parse_kitti_calib(config['data']['calib_velo_to_cam'])
         Tr_v2c = np.eye(4)
         Tr_v2c[:3, :3] = calib_v2c['R'].reshape(3, 3)
         Tr_v2c[:3, 3] = calib_v2c['T']
+        
+        # FIX: Exact KITTI mapping -> Velo -> Cam0 -> Rectified Cam0
+        Tr_v2c_rect = R_rect_00 @ Tr_v2c
 
         # 4. Compute W2C Trajectory
         self.w2c_matrices = []
@@ -77,12 +83,10 @@ class KittiDataset:
             if first_imu_to_world_inv is None:
                 first_imu_to_world_inv = np.linalg.inv(imu_to_world)
             
-            # rel_pose = IMU_at_t relative to IMU_at_0
             rel_pose = first_imu_to_world_inv @ imu_to_world
             
-            # FINAL MATH: World_to_Cam = (Velo_to_Cam) @ (IMU_to_Velo) @ inv(Relative_IMU_Motion)
-            # We simplify slightly assuming IMU and Velo are closely aligned
-            w2c = Tr_v2c @ np.linalg.inv(rel_pose)
+            # Apply the fully rectified transformation
+            w2c = Tr_v2c_rect @ np.linalg.inv(rel_pose)
             self.w2c_matrices.append(w2c)
 
         print(f"Dataset ready. Motion and Geometry are now perfectly synced.")

@@ -84,10 +84,14 @@ class SplatTrainer:
         opacities = self.model.get_opacity
         sh_dc = self.model._features_dc.squeeze(1)
         
+        # FIX: Convert raw SH coefficients to actual RGB colors!
         colors = SH2RGB(sh_dc)
         colors = torch.clamp(colors, 0.0, 1.0)
         
-        viewmat = camera.world_view_transform.transpose(0, 1) 
+        # 2. Extract camera matrices
+        # FIX: Remove .transpose(0, 1)! gsplat expects a standard row-major tensor.
+        viewmat = camera.world_view_transform.contiguous() 
+        
         K = camera.get_intrinsics_matrix()
         fx, fy = K[0, 0], K[1, 1]
         cx, cy = K[0, 2], K[1, 2]
