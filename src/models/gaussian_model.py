@@ -74,7 +74,10 @@ class GaussianModel(nn.Module):
     @property
     def get_scaling(self):
         # Exponentiate to ensure scales are strictly positive
-        return torch.exp(self._scaling)
+        scales = torch.exp(self._scaling)
+        
+        # The Hard Clamp tightened to 0.08
+        return torch.clamp(scales, max=0.08)
 
     @property
     def get_rotation(self):

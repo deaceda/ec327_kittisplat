@@ -59,9 +59,6 @@ class SplatTrainer:
             progress_bar.set_postfix({"Loss": f"{loss.item():.{5}f}"})
             
     def render(self, camera, bg_color=torch.tensor([0.0, 0.0, 0.0], device="cuda")):
-        """
-        Projects 3D Gaussians to 2D and rasterizes them into an image.
-        """
         # 1. Get current state of the Gaussians from the model
         means3D = self.model.get_xyz
         scales = self.model.get_scaling
@@ -71,7 +68,11 @@ class SplatTrainer:
         # Squeeze out the extra SH band dimension so shape goes from (N, 1, 3) to (N, 3)
         sh_dc = self.model._features_dc.squeeze(1)
         
-        # 2. Extract camera matrices (gsplat expects column-major for viewmat)
+        # FIX: Convert raw SH coefficients to actual RGB colors!
+        colors = SH2RGB(sh_dc)
+        colors = torch.clamp(colors, 0.0, 1.0)
+        
+        # 2. Extract camera matrices
         viewmat = camera.world_view_transform.transpose(0, 1) 
         K = camera.get_intrinsics_matrix()
         fx, fy = K[0, 0], K[1, 1]
@@ -83,15 +84,13 @@ class SplatTrainer:
             fx, fy, cx, cy, camera.image_height, camera.image_width, 
             block_width=16, clip_thresh=0.01
         )
-        
-        # Retain the 2D gradients for the Adaptive Density Control module
         xys.retain_grad()
         
         # 4. Rasterize the 2D splats into an RGB image
-        # FIX: Catch the single returned (H, W, 3) image tensor directly!
+        # FIX: Pass the newly converted 'colors' variable here instead of sh_dc
         render_colors = rasterize_gaussians(
             xys, depths, radii, conics, num_tiles_hit, 
-            sh_dc, opacities, camera.image_height, camera.image_width, 
+            colors, opacities, camera.image_height, camera.image_width, 
             block_width=16, background=bg_color
         )
         
