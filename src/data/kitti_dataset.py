@@ -100,3 +100,12 @@ class KittiDataset:
         w2c = self.w2c_matrices[idx]
         camera = MiniCam(w, h, w2c[:3,:3], w2c[:3,3], self.fx, self.fy, self.cx, self.cy, device=self.device)
         return camera, gt
+    
+    def get_frame_by_index(self, idx):
+        # Move the logic from get_random_frame here
+        image = cv2.cvtColor(cv2.imread(self.image_paths[idx]), cv2.COLOR_BGR2RGB)
+        h, w = image.shape[:2]
+        gt = torch.tensor(image, dtype=torch.float32, device=self.device).permute(2, 0, 1) / 255.0
+        w2c = self.w2c_matrices[idx]
+        camera = MiniCam(w, h, w2c[:3,:3], w2c[:3,3], self.fx, self.fy, self.cx, self.cy, device=self.device)
+        return camera, gt
