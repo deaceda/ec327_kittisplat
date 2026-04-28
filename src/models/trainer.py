@@ -1,5 +1,6 @@
 import torch
 import math
+import numpy
 from tqdm import tqdm
 from src.models.loss_functions import combined_loss
 from gsplat import project_gaussians, rasterize_gaussians
@@ -41,15 +42,18 @@ class SplatTrainer:
 
     def train(self):
         self.model.train()
-        
         progress_bar = tqdm(range(1, self.iterations + 1), desc="Training Splats")
         
         for iteration in progress_bar:
-            # 2. Update the learning rate for the xyz group before the optimizer step
             self.update_learning_rate(iteration)
             
-            # Fetch data and render
-            camera, gt_image = self.dataset.get_random_frame()
+            # CURRICULUM: Gradually introduce more frames
+            # Start with 5 frames, reach all 50 frames by iteration 10,000
+            num_available = len(self.dataset.image_paths)
+            current_max = min(num_available, 5 + int((iteration / 10000) * num_available))
+            idx = np.random.randint(0, current_max)
+            
+            camera, gt_image = self.dataset.get_frame_by_index(idx)
             render_dict = self.render(camera)
             pred_image = render_dict["render"]
             
