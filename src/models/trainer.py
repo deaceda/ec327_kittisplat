@@ -88,15 +88,12 @@ class SplatTrainer:
         xys.retain_grad()
         
         # 4. Rasterize the 2D splats into an RGB image
-        # FIX: Catch ALL return variables in a single tuple to bypass unpacking errors
-        raster_out = rasterize_gaussians(
+        # FIX: Catch the single returned (H, W, 3) image tensor directly!
+        render_colors = rasterize_gaussians(
             xys, depths, radii, conics, num_tiles_hit, 
             sh_dc, opacities, camera.image_height, camera.image_width, 
             block_width=16, background=bg_color
         )
-        
-        # Extract only the rendered colors (Index 0 is always the image tensor)
-        render_colors = raster_out[0]
         
         return {
             "render": render_colors,
