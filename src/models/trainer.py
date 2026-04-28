@@ -68,7 +68,7 @@ class SplatTrainer:
         rotations = self.model.get_rotation
         opacities = self.model.get_opacity
         
-        # FIX: Squeeze out the extra SH band dimension so shape goes from (N, 1, 3) to (N, 3)
+        # Squeeze out the extra SH band dimension so shape goes from (N, 1, 3) to (N, 3)
         sh_dc = self.model._features_dc.squeeze(1)
         
         # 2. Extract camera matrices (gsplat expects column-major for viewmat)
@@ -88,11 +88,15 @@ class SplatTrainer:
         xys.retain_grad()
         
         # 4. Rasterize the 2D splats into an RGB image
-        render_colors, render_alphas = rasterize_gaussians(
+        # FIX: Catch ALL return variables in a single tuple to bypass unpacking errors
+        raster_out = rasterize_gaussians(
             xys, depths, radii, conics, num_tiles_hit, 
             sh_dc, opacities, camera.image_height, camera.image_width, 
             block_width=16, background=bg_color
         )
+        
+        # Extract only the rendered colors (Index 0 is always the image tensor)
+        render_colors = raster_out[0]
         
         return {
             "render": render_colors,
