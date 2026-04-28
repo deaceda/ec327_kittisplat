@@ -1,0 +1,9 @@
+gsplat
+numpy
+scipy
+opencv-python
+plyfile
+nerfview
+open3d
+pyyaml
+tqdm

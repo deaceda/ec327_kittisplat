@@ -1,0 +1,9 @@
+# Ignore data and outputs
+data/
+output/
+
+# Ignore Python caches and Colab checkpoints
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.DS_Store
