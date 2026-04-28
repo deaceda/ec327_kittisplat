@@ -1,5 +1,5 @@
 # Ignore data and outputs
-data/
+/data/
 output/
 
 # Ignore Python caches and Colab checkpoints
