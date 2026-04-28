@@ -62,13 +62,25 @@ class Densifier:
             name = group["name"]
             if name in new_tensors_dict:
                 p = group['params'][0]
+                new_p = new_tensors_dict[name]
                 state = optimizer.state.get(p, None)
                 if state is not None:
-                    state["exp_avg"] = torch.cat([state["exp_avg"][valid_pts], torch.zeros_like(new_tensors_dict[name])], dim=0)
-                    state["exp_avg_sq"] = torch.cat([state["exp_avg_sq"][valid_pts], torch.zeros_like(new_tensors_dict[name])], dim=0)
+                    # FIX: Calculate exact number of new points added
+                    kept_pts = valid_pts.sum().item()
+                    num_new_pts = new_p.shape[0] - kept_pts
+                    
+                    # Create zero padding strictly for the newly added points
+                    zero_shape = list(new_p.shape)
+                    zero_shape[0] = num_new_pts
+                    
+                    zeros_exp_avg = torch.zeros(zero_shape, dtype=state["exp_avg"].dtype, device=new_p.device)
+                    zeros_exp_avg_sq = torch.zeros(zero_shape, dtype=state["exp_avg_sq"].dtype, device=new_p.device)
+                    
+                    state["exp_avg"] = torch.cat([state["exp_avg"][valid_pts], zeros_exp_avg], dim=0)
+                    state["exp_avg_sq"] = torch.cat([state["exp_avg_sq"][valid_pts], zeros_exp_avg_sq], dim=0)
                     del optimizer.state[p]
                 
-                group['params'][0] = new_tensors_dict[name]
+                group['params'][0] = new_p
                 if state is not None:
                     optimizer.state[group['params'][0]] = state
 
