@@ -6,13 +6,28 @@ import cv2
 from src.data.camera import MiniCam
 
 def parse_kitti_calib(filepath):
-    """Parses KITTI calibration files (velo_to_cam, etc)."""
+    """
+    Parses KITTI calibration files (velo_to_cam, etc) while ignoring metadata.
+    """
     data = {}
     with open(filepath, 'r') as f:
         for line in f:
-            if not line.strip() or ":" not in line: continue
+            if not line.strip() or ":" not in line: 
+                continue
+                
             key, value = line.split(':', 1)
-            data[key.strip()] = np.array([float(x) for x in value.split()])
+            key = key.strip()
+            
+            # FIX: Skip the 'calib_time' line which contains non-numeric strings
+            if key == "calib_time":
+                continue
+                
+            try:
+                # Attempt to convert the values to a NumPy array of floats
+                data[key] = np.array([float(x) for x in value.split()])
+            except ValueError:
+                # Skip any other lines that don't contain purely numeric data
+                continue
     return data
 
 def get_oxts_pose(oxts, scale):
