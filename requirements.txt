@@ -1,4 +1,4 @@
-gsplat==0.1.6
+gsplat==0.1.11
 numpy
 scipy
 opencv-python
