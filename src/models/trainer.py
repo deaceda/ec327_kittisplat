@@ -1,6 +1,6 @@
 import torch
 import math
-import numpy
+import numpy as np
 from tqdm import tqdm
 from src.models.loss_functions import combined_loss
 from gsplat import project_gaussians, rasterize_gaussians
