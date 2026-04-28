@@ -67,7 +67,9 @@ class SplatTrainer:
         scales = self.model.get_scaling
         rotations = self.model.get_rotation
         opacities = self.model.get_opacity
-        sh_dc = self.model._features_dc
+        
+        # FIX: Squeeze out the extra SH band dimension so shape goes from (N, 1, 3) to (N, 3)
+        sh_dc = self.model._features_dc.squeeze(1)
         
         # 2. Extract camera matrices (gsplat expects column-major for viewmat)
         viewmat = camera.world_view_transform.transpose(0, 1) 
@@ -76,7 +78,6 @@ class SplatTrainer:
         cx, cy = K[0, 2], K[1, 2]
         
         # 3. Project Gaussians into 2D screen space
-        # FIX: Removed camera.world_view_transform so the parameters align perfectly
         xys, depths, radii, conics, comp, num_tiles_hit, cov3d = project_gaussians(
             means3D, scales, 1.0, rotations, viewmat, 
             fx, fy, cx, cy, camera.image_height, camera.image_width, 
