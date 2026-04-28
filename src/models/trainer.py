@@ -1,4 +1,5 @@
 import torch
+import math
 from tqdm import tqdm
 from src.models.loss_functions import combined_loss
 from gsplat import project_gaussians, rasterize_gaussians
@@ -12,74 +13,85 @@ class SplatTrainer:
         self.iterations = iterations
         self.device = device
         
+        # 1. Define initial and final learning rates for the decay
+        self.xyz_lr_init = 0.00016
+        self.xyz_lr_final = 0.0000016 # Decay to 1% of initial value
+        
         # Define learning rates for each parameter group
         self.optimizer = torch.optim.Adam([
-            {'params': [self.model._xyz], 'lr': 0.00016, "name": "xyz"},
-            {'params': [self.model._features_dc], 'lr': 0.01, "name": "f_dc"}, # Increased from 0.0025
-            {'params': [self.model._features_rest], 'lr': 0.0005, "name": "f_rest"}, # Increased from 0.000125
-            {'params': [self.model._opacity], 'lr': 0.1, "name": "opacity"}, # Increased from 0.05
+            {'params': [self.model._xyz], 'lr': self.xyz_lr_init, "name": "xyz"},
+            {'params': [self.model._features_dc], 'lr': 0.01, "name": "f_dc"},
+            {'params': [self.model._features_rest], 'lr': 0.0005, "name": "f_rest"},
+            {'params': [self.model._opacity], 'lr': 0.1, "name": "opacity"},
             {'params': [self.model._scaling], 'lr': 0.005, "name": "scaling"},
             {'params': [self.model._rotation], 'lr': 0.001, "name": "rotation"}
-        ], lr=0.001, eps=1e-15) # Changed base LR from 0.0 to 0.001 for stability
+        ], lr=0.001, eps=1e-15)
+
+    def get_expon_lr(self, iteration):
+        """Calculates the decayed learning rate for the current iteration."""
+        t = iteration / self.iterations
+        return self.xyz_lr_init * (self.xyz_lr_final / self.xyz_lr_init) ** t
+
+    def update_learning_rate(self, iteration):
+        """Updates the learning rate for the 'xyz' parameter group in the optimizer."""
+        for param_group in self.optimizer.param_groups:
+            if param_group["name"] == "xyz":
+                lr = self.get_expon_lr(iteration)
+                param_group['lr'] = lr
 
     def train(self):
         self.model.train()
         
-        # Training loop with a progress bar
         progress_bar = tqdm(range(1, self.iterations + 1), desc="Training Splats")
         
         for iteration in progress_bar:
-            # 1. Fetch a random camera frame and ground truth image from KITTI
-            camera, gt_image = self.dataset.get_random_frame()
+            # 2. Update the learning rate for the xyz group before the optimizer step
+            self.update_learning_rate(iteration)
             
-            # 2. Render the scene from this camera's perspective
+            # Fetch data and render
+            camera, gt_image = self.dataset.get_random_frame()
             render_dict = self.render(camera)
             pred_image = render_dict["render"]
             
-            # 3. Calculate Loss (Permute from HWC to CHW for loss functions)
+            # Calculate Loss
             pred_image = pred_image.permute(2, 0, 1)
             loss = combined_loss(pred_image, gt_image)
             
-            # 4. Backpropagation
+            # Backpropagation
             loss.backward()
             
-            # 5. Adaptive Density Control (Clone/Split/Prune)
-            if self.densifier is not None and iteration < 15000:
-                # Track gradients every step
+            # Adaptive Density Control (ends at 25k)
+            if self.densifier is not None and iteration < 25000:
                 self.densifier.track_gradients(render_dict["viewspace_points"], render_dict["visibility_filter"])
-                
-                # Densify and prune every 100 steps
                 if iteration % 100 == 0:
                     self.densifier.densify_and_prune(self.optimizer, iteration)
             
-            # 6. Optimizer Step
+            # Optimizer Step
             self.optimizer.step()
             self.optimizer.zero_grad(set_to_none=True)
             
-            # Update progress bar
-            progress_bar.set_postfix({"Loss": f"{loss.item():.{5}f}"})
+            # Fetch the current decayed LR to show in the progress bar
+            current_xyz_lr = self.optimizer.param_groups[0]['lr']
+            progress_bar.set_postfix({
+                "Loss": f"{loss.item():.{5}f}",
+                "LR_xyz": f"{current_xyz_lr:.{8}f}"
+            })
             
     def render(self, camera, bg_color=torch.tensor([0.0, 0.0, 0.0], device="cuda")):
-        # 1. Get current state of the Gaussians from the model
         means3D = self.model.get_xyz
         scales = self.model.get_scaling
         rotations = self.model.get_rotation
         opacities = self.model.get_opacity
-        
-        # Squeeze out the extra SH band dimension so shape goes from (N, 1, 3) to (N, 3)
         sh_dc = self.model._features_dc.squeeze(1)
         
-        # FIX: Convert raw SH coefficients to actual RGB colors!
         colors = SH2RGB(sh_dc)
         colors = torch.clamp(colors, 0.0, 1.0)
         
-        # 2. Extract camera matrices
         viewmat = camera.world_view_transform.transpose(0, 1) 
         K = camera.get_intrinsics_matrix()
         fx, fy = K[0, 0], K[1, 1]
         cx, cy = K[0, 2], K[1, 2]
         
-        # 3. Project Gaussians into 2D screen space
         xys, depths, radii, conics, comp, num_tiles_hit, cov3d = project_gaussians(
             means3D, scales, 1.0, rotations, viewmat, 
             fx, fy, cx, cy, camera.image_height, camera.image_width, 
@@ -87,8 +99,6 @@ class SplatTrainer:
         )
         xys.retain_grad()
         
-        # 4. Rasterize the 2D splats into an RGB image
-        # FIX: Pass the newly converted 'colors' variable here instead of sh_dc
         render_colors = rasterize_gaussians(
             xys, depths, radii, conics, num_tiles_hit, 
             colors, opacities, camera.image_height, camera.image_width, 
