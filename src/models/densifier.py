@@ -39,8 +39,18 @@ class Densifier:
         # 3. Split large Gaussians
         self._split_gaussians(selected_pts_mask, optimizer)
 
-        # 4. Prune nearly transparent Gaussians
-        prune_mask = (self.model.get_opacity < self.opacity_threshold).squeeze()
+        # 4. Prune nearly transparent AND excessively large Gaussians
+        # Base mask: kill transparent splats
+        opacity_mask = (self.model.get_opacity < self.opacity_threshold).squeeze()
+        
+        # FIX: Kill the spikes! If a splat scales larger than a physical threshold, destroy it.
+        # Based on your config, this limits splats to roughly 0.5 meters wide.
+        max_scale_limit = self.percent_dense * self.spatial_extent * 5.0 
+        scale_mask = (torch.max(self.model.get_scaling, dim=1).values > max_scale_limit).squeeze()
+        
+        # Combine the masks: Prune if it's invisible OR if it's a giant needle
+        prune_mask = torch.logical_or(opacity_mask, scale_mask)
+        
         self._prune_gaussians(prune_mask, optimizer)
 
         # Reset accumulators after density update
