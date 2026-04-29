@@ -66,8 +66,11 @@ class KittiDataset:
         Tr_v2c[:3, :3] = calib_v2c['R'].reshape(3, 3)
         Tr_v2c[:3, 3] = calib_v2c['T']
         
-        # FIX: Exact KITTI mapping -> Velo -> Cam0 -> Rectified Cam0
+        # Exact KITTI mapping -> Velo -> Cam0 -> Rectified Cam0
         Tr_v2c_rect = R_rect_00 @ Tr_v2c
+        
+        # FIX: Save this to 'self' so the notebook can use it for stitching
+        self.Tr_v2c_rect = Tr_v2c_rect
 
         # 4. Compute W2C Trajectory
         self.w2c_matrices = []
