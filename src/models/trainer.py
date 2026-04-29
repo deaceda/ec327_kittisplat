@@ -7,7 +7,7 @@ from gsplat import project_gaussians, rasterize_gaussians
 from src.utils.sh_utils import SH2RGB
 
 class SplatTrainer:
-    def __init__(self, gaussian_model, dataset, densifier=None, iterations=30000, device="cuda"):
+    def __init__(self, gaussian_model, dataset, densifier=None, iterations=7000, device="cuda"):
         self.model = gaussian_model
         self.dataset = dataset 
         self.densifier = densifier 
@@ -65,7 +65,7 @@ class SplatTrainer:
             loss.backward()
             
             # Adaptive Density Control (ends at 25k)
-            if self.densifier is not None and iteration < 25000:
+            if self.densifier is not None and iteration < 5000:
                 self.densifier.track_gradients(render_dict["viewspace_points"], render_dict["visibility_filter"])
                 if iteration % 100 == 0:
                     self.densifier.densify_and_prune(self.optimizer, iteration)
