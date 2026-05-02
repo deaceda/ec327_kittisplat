@@ -61,17 +61,27 @@ class KittiDataset:
         R_rect_00 = np.eye(4)
         R_rect_00[:3, :3] = calib_cam['R_rect_00'].reshape(3, 3)
 
-        # 3. Parse Velo-to-Cam (Extrinsic Offset)
+        # 3. Parse Velo-to-Cam and IMU-to-Velo
         calib_v2c = parse_kitti_calib(config['data']['calib_velo_to_cam'])
         Tr_v2c = np.eye(4)
         Tr_v2c[:3, :3] = calib_v2c['R'].reshape(3, 3)
         Tr_v2c[:3, 3] = calib_v2c['T']
         
+        # --- NEW MATH: Add the IMU offset ---
+        calib_i2v = parse_kitti_calib(config['data']['calib_imu_to_velo'])
+        Tr_i2v = np.eye(4)
+        Tr_i2v[:3, :3] = calib_i2v['R'].reshape(3, 3)
+        Tr_i2v[:3, 3] = calib_i2v['T']
+        
         # Exact KITTI mapping -> Velo -> Cam0 -> Rectified Cam0
         Tr_v2c_rect = R_rect_00 @ Tr_v2c
         
-        # FIX: Save this to 'self' so the notebook can use it for stitching
+        # Save this to 'self' so the notebook can use it for stitching
         self.Tr_v2c_rect = Tr_v2c_rect
+        
+        # Full mapping -> IMU -> Velo -> Cam0 -> Rectified Cam0
+        Tr_imu2cam = Tr_v2c_rect @ Tr_i2v
+        # ------------------------------------
 
         # 4. Compute W2C Trajectory
         self.w2c_matrices = []
@@ -89,8 +99,8 @@ class KittiDataset:
             
             rel_pose = first_imu_to_world_inv @ imu_to_world
             
-            # Apply the fully rectified transformation
-            w2c = Tr_v2c_rect @ np.linalg.inv(rel_pose)
+            # --- FIX: Apply the full IMU-to-Camera transformation ---
+            w2c = Tr_imu2cam @ np.linalg.inv(rel_pose)
             self.w2c_matrices.append(w2c)
 
         print(f"Dataset ready. Motion and Geometry are now perfectly synced.")

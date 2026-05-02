@@ -19,14 +19,14 @@ class SplatTrainer:
         self.xyz_lr_init = 0.00016
         self.xyz_lr_final = 0.0000016 # Decay to 1% of initial value
         
-        # Define learning rates for each parameter group
+        # Define learning rates dynamically from config
         self.optimizer = torch.optim.Adam([
             {'params': [self.model._xyz], 'lr': self.xyz_lr_init, "name": "xyz"},
-            {'params': [self.model._features_dc], 'lr': 0.01, "name": "f_dc"},
-            {'params': [self.model._features_rest], 'lr': 0.0005, "name": "f_rest"},
-            {'params': [self.model._opacity], 'lr': 0.1, "name": "opacity"},
-            {'params': [self.model._scaling], 'lr': 0.005, "name": "scaling"},
-            {'params': [self.model._rotation], 'lr': 0.001, "name": "rotation"}
+            {'params': [self.model._features_dc], 'lr': self.config['training']['lr_f_dc'], "name": "f_dc"},
+            {'params': [self.model._features_rest], 'lr': self.config['training']['lr_f_rest'], "name": "f_rest"},
+            {'params': [self.model._opacity], 'lr': self.config['training']['lr_opacity'], "name": "opacity"},
+            {'params': [self.model._scaling], 'lr': self.config['training']['lr_scaling'], "name": "scaling"},
+            {'params': [self.model._rotation], 'lr': self.config['training']['lr_rotation'], "name": "rotation"}
         ], lr=0.001, eps=1e-15)
 
     def get_expon_lr(self, iteration):
