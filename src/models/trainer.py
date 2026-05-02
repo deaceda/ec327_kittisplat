@@ -7,7 +7,7 @@ from gsplat import project_gaussians, rasterize_gaussians
 from src.utils.sh_utils import SH2RGB
 
 class SplatTrainer:
-    def __init__(self, gaussian_model, dataset, densifier=None, iterations=15000, device="cuda"):
+    def __init__(self, gaussian_model, dataset, config, densifier=None, iterations=15000, device="cuda"):
         self.model = gaussian_model
         self.dataset = dataset 
         self.config = config
