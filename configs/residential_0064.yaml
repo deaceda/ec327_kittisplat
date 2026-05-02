@@ -14,14 +14,15 @@ data:
   calib_cam_to_cam: "data/calib_cam_to_cam.txt"
   calib_velo_to_cam: "data/calib_velo_to_cam.txt"
   calib_imu_to_velo: "data/calib_imu_to_velo.txt"
-  limit_frames: 15 
+  limit_frames: 15
+  downsample_rate: 3
 
 model:
   sh_degree: 3
-  white_background: false # KITTI is outdoor, so background should be black (0.0, 0.0, 0.0)
+  white_background: false 
 
 training:
-  iterations: 15000
+  iterations: 30000
   
   # Learning Rates
   lr_xyz: 0.00016
@@ -37,9 +38,9 @@ training:
 densification:
   # Adaptive Density Control (ADC) Thresholds
   start_iteration: 500
-  end_iteration: 5000
+  end_iteration: 25000
   interval: 100
-  grad_threshold: 0.0008
-  opacity_threshold: 0.05
+  grad_threshold: 0.0002
+  opacity_threshold: 0.005
   percent_dense: 0.01
-  spatial_extent: 10.0 # Standard spatial bounding for KITTI scenes
+  spatial_extent: 10.0 
