@@ -10,6 +10,7 @@ class SplatTrainer:
     def __init__(self, gaussian_model, dataset, densifier=None, iterations=15000, device="cuda"):
         self.model = gaussian_model
         self.dataset = dataset 
+        self.config = config
         self.densifier = densifier 
         self.iterations = iterations
         self.device = device
@@ -49,8 +50,9 @@ class SplatTrainer:
             
             # CURRICULUM: Gradually introduce more frames
             # Start with 5 frames, reach all 50 frames by iteration 10,000
+            curriculum_end = int(self.iterations * 0.8)
             num_available = len(self.dataset.image_paths)
-            current_max = min(num_available, 5 + int((iteration / 10000) * num_available))
+            current_max = min(num_available, 5 + int((iteration / curriculum_end) * num_available))
             idx = np.random.randint(0, current_max)
             
             camera, gt_image = self.dataset.get_frame_by_index(idx)
@@ -65,9 +67,12 @@ class SplatTrainer:
             loss.backward()
             
             # Adaptive Density Control (ends at 25k)
-            if self.densifier is not None and iteration < 10000:
+            end_iter = self.config['densification']['end_iteration']
+            interval = self.config['densification']['interval']
+            
+            if self.densifier is not None and iteration < end_iter:
                 self.densifier.track_gradients(render_dict["viewspace_points"], render_dict["visibility_filter"])
-                if iteration % 100 == 0:
+                if iteration % interval == 0:
                     self.densifier.densify_and_prune(self.optimizer, iteration)
             
             # Optimizer Step

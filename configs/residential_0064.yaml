@@ -14,6 +14,7 @@ data:
   calib_cam_to_cam: "data/calib_cam_to_cam.txt"
   calib_velo_to_cam: "data/calib_velo_to_cam.txt"
   calib_imu_to_velo: "data/calib_imu_to_velo.txt"
+  limit_frames: 15 
 
 model:
   sh_degree: 3
