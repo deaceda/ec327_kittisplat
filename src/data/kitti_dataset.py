@@ -47,8 +47,8 @@ def get_oxts_pose(oxts, scale):
 class KittiDataset:
     def __init__(self, config):
         # 1. Load Paths
-        self.image_paths = sorted(glob.glob(os.path.join(config['data']['image_dir'], "*.png")))[:50]
-        self.oxts_paths = sorted(glob.glob(os.path.join(config['data']['oxts_dir'], "[0-9]*.txt")))[:50]
+        self.image_paths = sorted(glob.glob(os.path.join(config['data']['image_dir'], "*.png")))[:15]
+        self.oxts_paths = sorted(glob.glob(os.path.join(config['data']['oxts_dir'], "[0-9]*.txt")))[:15]
         self.device = config['experiment']['device']
 
         # 2. Parse Projection (Intrinsics) and Rectification
