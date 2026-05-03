@@ -19,29 +19,28 @@ data:
 
 model:
   sh_degree: 1
-  white_background: false 
+  white_background: true 
 
 training:
   iterations: 30000
   
   # Learning Rates
   lr_xyz: 0.00016
-  lr_f_dc: 0.01           
+  lr_f_dc: 0.0025           
   lr_f_rest: 0.000125
   lr_opacity: 0.05
   lr_scaling: 0.005
   lr_rotation: 0.001
   
   # Loss Weights
-  lambda_dssim: 0.2
+  lambda_dssim: 0.4
 
 densification:
   # Adaptive Density Control (ADC) Thresholds
-  densification:
   start_iteration: 500
   end_iteration: 25000    
   interval: 100
   grad_threshold: 0.0002
-  opacity_threshold: 0.005
+  opacity_threshold: 0.05
   percent_dense: 0.01
-  spatial_extent: 10.0
+  spatial_extent: 100.0

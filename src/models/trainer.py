@@ -86,7 +86,14 @@ class SplatTrainer:
                 "LR_xyz": f"{current_xyz_lr:.{8}f}"
             })
             
-    def render(self, camera, bg_color=torch.tensor([0.0, 0.0, 0.0], device="cuda")):
+    def render(self, camera, bg_color=None):
+        # --- NEW: Dynamically set background color from config ---
+        if bg_color is None:
+            is_white = self.config['model'].get('white_background', False)
+            bg_val = [1.0, 1.0, 1.0] if is_white else [0.0, 0.0, 0.0]
+            bg_color = torch.tensor(bg_val, device=self.device)
+        # ---------------------------------------------------------
+            
         means3D = self.model.get_xyz
         scales = self.model.get_scaling
         rotations = self.model.get_rotation
