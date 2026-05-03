@@ -30,7 +30,7 @@ The project requires the **synced** KITTI dataset (specifically Residential Driv
 
 
 
-1. In Google Colab, open **`src/data/get_kitti_data.ipynb`** from your uploaded folder.
+1. In Google Colab, open **`src/data/get_kitti_data.ipynb`** by going to File > Open Notebook > GitHub and then enter the KITTI_splat repo link. You should see **`src/data/get_kitti_data.ipynb`**- open it. If you use Google Colab and know how to mount your drive and run the scripts from there, feel free to!
 
 2. Run the cells sequentially. 
 
@@ -46,7 +46,7 @@ Once your data is prepared and masked, you can start the 3D Gaussian Splatting o
 
 
 
-1. In Google Colab, open **`main_notebook.ipynb`**.
+1. In Google Colab, open **`main_notebook.ipynb`** using the same method described above. 
 
 2. Ensure your hardware accelerator is set to GPU (*Runtime > Change runtime type > Hardware accelerator: GPU*). During out runs, we used an L4 and finished training in approximately twenty minuntes. 
 
