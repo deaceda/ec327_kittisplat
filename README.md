@@ -84,4 +84,4 @@ To interact with your reconstructed street in real-time, we recommend using the 
 
 3. Drag and drop your `.ply` file directly into the browser window.
 
-4. Enjoy! Because we are not training off the whole clip (memory issues), you will see many gray splats. You can easily delete these to have a cleaner splat. 
+4. Enjoy! Because we are not training off the whole clip (memory issues in Colab), you will see many gray splats. You can easily delete these to have a cleaner splat. 
