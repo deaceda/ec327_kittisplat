@@ -55,13 +55,19 @@ class SplatTrainer:
             current_max = min(num_available, 5 + int((iteration / curriculum_end) * num_available))
             idx = np.random.randint(0, current_max)
             
-            camera, gt_image = self.dataset.get_frame_by_index(idx)
+            # Unpack the new mask variable from the dataset
+            camera, gt_image, mask = self.dataset.get_frame_by_index(idx)
             render_dict = self.render(camera)
             pred_image = render_dict["render"]
             
-            # Calculate Loss
+            # Match dimensions
             pred_image = pred_image.permute(2, 0, 1)
-            loss = combined_loss(pred_image, gt_image)
+            
+            # --- NEW: Apply the Sky Mask! ---
+            # Multiplying by the mask instantly turns the sky to 0.0 in both images.
+            # The optimizer will see 0 mathematical difference and ignore it completely.
+            loss = combined_loss(pred_image * mask, gt_image * mask)
+            # --------------------------------
             
             # Backpropagation
             loss.backward()

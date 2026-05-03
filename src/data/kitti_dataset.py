@@ -52,6 +52,14 @@ class KittiDataset:
         self.oxts_paths = sorted(glob.glob(os.path.join(config['data']['oxts_dir'], "[0-9]*.txt")))[:limit]
         self.device = config['experiment']['device']
 
+        # --- NEW: Load Mask Paths ---
+        self.mask_dir = config['data'].get('mask_dir', None)
+        if self.mask_dir and os.path.exists(self.mask_dir):
+            self.mask_paths = sorted(glob.glob(os.path.join(self.mask_dir, "*.png")))[:limit]
+        else:
+            self.mask_paths = None
+        # ----------------------------
+
         # 2. Parse Projection (Intrinsics) and Rectification
         calib_cam = parse_kitti_calib(config['data']['calib_cam_to_cam'])
         P2 = calib_cam['P_rect_02'].reshape(3, 4)
@@ -116,10 +124,23 @@ class KittiDataset:
         return camera, gt
     
     def get_frame_by_index(self, idx):
-        # Move the logic from get_random_frame here
         image = cv2.cvtColor(cv2.imread(self.image_paths[idx]), cv2.COLOR_BGR2RGB)
         h, w = image.shape[:2]
         gt = torch.tensor(image, dtype=torch.float32, device=self.device).permute(2, 0, 1) / 255.0
+        
+        # --- NEW: Format the Mask ---
+        if self.mask_paths:
+            mask_img = cv2.imread(self.mask_paths[idx], cv2.IMREAD_GRAYSCALE)
+            # Normalize to 0.0 - 1.0 and add a channel dimension [1, H, W]
+            mask = torch.tensor(mask_img, dtype=torch.float32, device=self.device) / 255.0
+            mask = mask.unsqueeze(0) 
+        else:
+            # Fallback if no masks exist (all 1s = keep everything)
+            mask = torch.ones((1, h, w), dtype=torch.float32, device=self.device)
+        # ----------------------------
+
         w2c = self.w2c_matrices[idx]
         camera = MiniCam(w, h, w2c[:3,:3], w2c[:3,3], self.fx, self.fy, self.cx, self.cy, device=self.device)
-        return camera, gt
+        
+        # Return the mask as the third variable!
+        return camera, gt, mask

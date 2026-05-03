@@ -11,6 +11,7 @@ data:
   image_dir: "data/image_02"
   lidar_dir: "data/velodyne_points"
   oxts_dir: "data/oxts"
+  mask_dir: "data/masks"
   calib_cam_to_cam: "data/calib_cam_to_cam.txt"
   calib_velo_to_cam: "data/calib_velo_to_cam.txt"
   calib_imu_to_velo: "data/calib_imu_to_velo.txt"

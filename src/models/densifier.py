@@ -29,9 +29,9 @@ class Densifier:
         # 1. Identify ALL Gaussians that have high gradients
         high_grad_mask = torch.norm(grads, dim=-1) >= self.grad_threshold
 
-        # 2. Divide into Clone and Split based on a physical threshold (10 centimeters)
-        # Small points get duplicated (Cloned). Large points get chopped in half (Split).
-        split_threshold = 0.1 
+        # 2. Divide into Clone and Split
+        # Small points get duplicated. Large points get chopped in half.
+        split_threshold = 0.5 
         
         max_scales = torch.max(self.model.get_scaling, dim=1).values
         clone_mask = torch.logical_and(high_grad_mask, max_scales <= split_threshold)
@@ -40,7 +40,7 @@ class Densifier:
         # 3. Clone the small Gaussians
         self._clone_gaussians(clone_mask, optimizer)
 
-        # 4. FIX THE CRASH: Pad the split mask to account for the newly cloned points!
+        # 4. Pad the split mask to account for the newly cloned points
         if clone_mask.any():
             num_new_clones = clone_mask.sum().item()
             pad = torch.zeros(num_new_clones, dtype=torch.bool, device="cuda")
@@ -50,12 +50,11 @@ class Densifier:
         self._split_gaussians(split_mask, optimizer)
 
         # 6. Prune nearly transparent AND excessively large Gaussians
-        # Re-calculate max_scales because the arrays just changed size!
         current_max_scales = torch.max(self.model.get_scaling, dim=1).values
         opacity_mask = (self.model.get_opacity < self.opacity_threshold).squeeze()
         
-        # Kill the spikes (anything over 0.5 meters)
-        max_scale_limit = 0.5
+        # Stop mass-murdering the background! Increase limit to 5.0 meters
+        max_scale_limit = 5.0
         scale_mask = (current_max_scales > max_scale_limit).squeeze()
         
         prune_mask = torch.logical_or(opacity_mask, scale_mask)

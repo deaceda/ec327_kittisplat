@@ -74,8 +74,8 @@ class GaussianModel(nn.Module):
     @property
     def get_scaling(self):
         scales = torch.exp(self._scaling)
-        # The ultimate safety net: No splat can exceed 1 meter in size
-        return torch.clamp(scales, max=1.0)
+        # Let the background breathe! Clamp at 5.0 meters.
+        return torch.clamp(scales, max=5.0)
 
     @property
     def get_rotation(self):
