@@ -10,8 +10,12 @@ This repository contains a 3D Gaussian Splatting (3DGS) pipeline optimized for t
 
 Because this project relies on heavy GPU computation, everything is orchestrated through Google Drive and Google Colab.
 
-1. **Upload the Repository:** Download/clone this repository to your local machine, and then upload the entire `ec327_kittisplat` folder to your Google Drive. (Placing it in the root of your `MyDrive` is recommended).
-2. **Open Colab:** Navigate to [Google Colab](https://colab.research.google.com/) and connect it to your Google Drive.
+1. **Upload the Repository:** Download/clone this repository to your local machine using
+
+git clone https://github.com/deaceda/ec327_kittisplat.git KITTI_Project
+
+and then upload the entire `KITTI_Project` folder to your Google Drive. (Placing it in the root of your `MyDrive` is recommended).
+
 
 ## 2. Fetching the Data
 
