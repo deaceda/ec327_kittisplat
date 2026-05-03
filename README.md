@@ -42,4 +42,4 @@ To interact with your reconstructed street in real-time, we recommend using the 
 1. Download the **`point_cloud_radiancekit.ply`** file from your Google Drive to your local computer.
 2. Open your web browser and go to: [PlayCanvas SuperSplat](https://playcanvas.com/supersplat)
 3. Drag and drop your `.ply` file directly into the browser window.
-4. **Navigation:** Switch to **Walk** mode (usually the `W` key or the shoe icon in the toolbar) to drive or walk down the 3D street using WASD controls.
+4. Enjoy! Because we are not training off the whole clip (memory issues), you will see many gray splats. You can easily delete these to have a cleaner splat. 
