@@ -16,6 +16,7 @@ Because this project relies on heavy GPU computation, everything is orchestrated
 ## 2. Fetching the Data
 
 The project requires the **synced** KITTI dataset (specifically Residential Drive 0064) to properly align the LiDAR, GPS, and Camera data. We have provided an automated notebook to handle this.
+**Note: You must have an account with KITTI for this to work. They do NOT allow downloads of datasets without an account**
 
 1. In Google Colab, open **`src/data/get_kitti_data.ipynb`** from your uploaded folder.
 2. Run the cells sequentially. 
