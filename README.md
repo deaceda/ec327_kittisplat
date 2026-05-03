@@ -17,7 +17,7 @@ The project requires the **synced** KITTI dataset (specifically Residential Driv
 
 1. In Google Colab, open **`src/data/get_kitti_data.ipynb`** from your uploaded folder.
 2. Run the cells sequentially. 
-3. This notebook will automatically download, extract, and format the synced dataset into the correct directory structure. It will also run the SegFormer AI to generate the necessary sky masks, saving everything to the `data/` folder in your Drive.
+3. This notebook will automatically download, extract, and format the synced dataset into the correct directory structure. It will also create an output folder specifically for this dataset. 
 
 ## 3. Running the Training Pipeline
 
