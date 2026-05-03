@@ -16,7 +16,7 @@ Because this project relies on heavy GPU computation, everything is orchestrated
    ```bash
    git clone https://github.com/deaceda/ec327_kittisplat.git KITTI_Project
 
-and then upload the entire `KITTI_Project` folder to your Google Drive. (Keeping it in the root of your `MyDrive` is necessary).
+and then upload the entire `KITTI_Project` folder to your Google Drive. (Keeping it in the root of your `MyDrive` and keeping the name `KITTI_Project` is necessary for proper functionality).
 
 
 
