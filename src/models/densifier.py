@@ -54,7 +54,7 @@ class Densifier:
         opacity_mask = (self.model.get_opacity < self.opacity_threshold).squeeze()
         
         # Stop mass-murdering the background! Increase limit to 5.0 meters
-        max_scale_limit = 5.0
+        max_scale_limit = 1.5
         scale_mask = (current_max_scales > max_scale_limit).squeeze()
         
         prune_mask = torch.logical_or(opacity_mask, scale_mask)

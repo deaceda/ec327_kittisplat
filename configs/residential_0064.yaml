@@ -30,7 +30,7 @@ training:
   lr_f_dc: 0.0025           
   lr_f_rest: 0.000125
   lr_opacity: 0.05
-  lr_scaling: 0.005
+  lr_scaling: 0.001
   lr_rotation: 0.001
   
   # Loss Weights
