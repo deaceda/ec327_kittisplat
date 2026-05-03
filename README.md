@@ -1,1 +1,1 @@
-# ec327_kittisplat
+# EC327 KITTI_splat
