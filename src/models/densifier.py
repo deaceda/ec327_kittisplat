@@ -56,6 +56,16 @@ class Densifier:
         # Stop mass-murdering the background! Increase limit to 5.0 meters
         max_scale_limit = 1.5
         scale_mask = (current_max_scales > max_scale_limit).squeeze()
+
+        # --- NEW: VERTICAL PRUNING FIX ---
+        # Get the Z-coordinate (Height) of all points
+        # In KITTI world space, Z is usually altitude
+        heights = self.model.get_xyz[:, 2] 
+        
+        # Kill any point that is more than 8 meters above the ground
+        # This will clean up the "reach toward the sky" artifacts
+        height_mask = (heights > 8.0).squeeze()
+        # ---------------------------------
         
         prune_mask = torch.logical_or(opacity_mask, scale_mask)
         self._prune_gaussians(prune_mask, optimizer)
