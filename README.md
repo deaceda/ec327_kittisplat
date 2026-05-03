@@ -2,44 +2,44 @@
 
 This repository contains a 3D Gaussian Splatting (3DGS) pipeline optimized for the sparse KITTI autonomous driving dataset. It uses sensor fusion and semantic AI masking to reconstruct a stable, high-fidelity 3D street scene.
 
-## 1. Setup & Data Preparation
+**Note: This pipeline is configured specifically to be run end-to-end within Google Colab.**
 
-First, clone the repository and install the necessary dependencies:
+## 1. Setup & Installation (Google Drive)
 
-```bash
-git clone [https://github.com/deaceda/ec327_kittisplat.git](https://github.com/deaceda/ec327_kittisplat.git)
-cd ec327_kittisplat
-pip install -r requirements.txt
-```
+Because this project relies on heavy GPU computation, everything is orchestrated through Google Drive and Google Colab.
 
-### Fetching the Data
-The project requires the **synced** KITTI dataset (specifically Residential Drive 0064) to properly align the LiDAR, GPS, and Camera data. 
+1. **Upload the Repository:** Download/clone this repository to your local machine, and then upload the entire `ec327_kittisplat` folder to your Google Drive. (Placing it in the root of your `MyDrive` is recommended).
+2. **Open Colab:** Navigate to [Google Colab](https://colab.research.google.com/) and connect it to your Google Drive.
 
-We have provided an automated script to handle the downloading, extraction, and formatting of the dataset, as well as generating the SegFormer AI sky masks.
+## 2. Fetching the Data
 
-Navigate to `src/data` and run the data preparation script/notebook:
-* Open and run all cells in `src/data/get_kitti_data.ipynb`.
-* This will automatically build the required `data/` directory structure with the synced images, velodyne points, OXTS trajectories, and AI masks.
+The project requires the **synced** KITTI dataset (specifically Residential Drive 0064) to properly align the LiDAR, GPS, and Camera data. We have provided an automated notebook to handle this.
 
-## 2. Running the Model
+1. In Google Colab, open **`src/data/get_kitti_data.ipynb`** from your uploaded folder.
+2. Run the cells sequentially. 
+3. This notebook will automatically download, extract, and format the synced dataset into the correct directory structure. It will also run the SegFormer AI to generate the necessary sky masks, saving everything to the `data/` folder in your Drive.
 
-Once your data is prepared, you can start the 3D Gaussian Splatting optimizer. We use a custom Densifier with hard-coded physical limits (1.5m scale clamp, 8.0m height ceiling) to prevent geometric artifacts.
+## 3. Running the Training Pipeline
 
-Run the training pipeline using the provided configuration file:
+Once your data is prepared and masked, you can start the 3D Gaussian Splatting optimizer.
 
-```bash
-python train.py --config configs/residential_0064.yaml
-```
+1. In Google Colab, open **`main_notebook.ipynb`**.
+2. Ensure your hardware accelerator is set to GPU (*Runtime > Change runtime type > Hardware accelerator: GPU*).
+3. Run the cells sequentially.
 
-The model will train for 30,000 iterations. By default, the Densifier shuts off at 25,000 iterations, dedicating the final 5,000 steps entirely to baking the high-resolution textures.
+**What the notebook does:**
+* Mounts your Google Drive and creates a fast local workspace.
+* Installs all dependencies from `requirements.txt`.
+* Initializes the custom Densifier with physical safety limits (1.5m scale clamp, 8.0m height ceiling) to prevent geometric artifacts.
+* Runs the training loop for 30,000 iterations (providing a live visual preview of the render every 1,000 steps).
 
-* **Outputs:** The trained 3D geometry will be saved in your `output/exp_0064/` directory. Be sure to run the final export function to generate the `point_cloud_radiancekit.ply` file.
+**Outputs:** The notebook automatically packages the trained 3D geometry and copies it back to your Google Drive. Look for the `point_cloud_radiancekit.ply` file in your `output/exp_0064/` directory.
 
-## 3. Viewing in SuperSplat
+## 4. Viewing your 3D Street (SuperSplat)
 
 To interact with your reconstructed street in real-time, we recommend using the PlayCanvas SuperSplat web viewer.
 
-1. Locate the **`point_cloud_radiancekit.ply`** file generated in your output directory.
+1. Download the **`point_cloud_radiancekit.ply`** file from your Google Drive to your local computer.
 2. Open your web browser and go to: [PlayCanvas SuperSplat](https://playcanvas.com/supersplat)
 3. Drag and drop your `.ply` file directly into the browser window.
 4. **Navigation:** Switch to **Walk** mode (usually the `W` key or the shoe icon in the toolbar) to drive or walk down the 3D street using WASD controls.
