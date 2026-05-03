@@ -26,34 +26,42 @@ class Densifier:
         grads = self.xyz_gradient_accum / self.denom.clamp(min=1)
         grads[grads.isnan()] = 0.0
 
-        # 1. Identify which Gaussians have high gradients
-        selected_pts_mask = torch.norm(grads, dim=-1) >= self.grad_threshold
-        selected_pts_mask = torch.logical_and(
-            selected_pts_mask,
-            torch.max(self.model.get_scaling, dim=1).values <= self.percent_dense * self.spatial_extent
-        )
+        # 1. Identify ALL Gaussians that have high gradients
+        high_grad_mask = torch.norm(grads, dim=-1) >= self.grad_threshold
 
-        # 2. Clone small Gaussians
-        self._clone_gaussians(selected_pts_mask, optimizer)
+        # 2. Divide into Clone and Split based on a physical threshold (10 centimeters)
+        # Small points get duplicated (Cloned). Large points get chopped in half (Split).
+        split_threshold = 0.1 
+        
+        max_scales = torch.max(self.model.get_scaling, dim=1).values
+        clone_mask = torch.logical_and(high_grad_mask, max_scales <= split_threshold)
+        split_mask = torch.logical_and(high_grad_mask, max_scales > split_threshold)
 
-        # 3. Split large Gaussians
-        self._split_gaussians(selected_pts_mask, optimizer)
+        # 3. Clone the small Gaussians
+        self._clone_gaussians(clone_mask, optimizer)
 
-        # 4. Prune nearly transparent AND excessively large Gaussians
-        # Base mask: kill transparent splats
+        # 4. FIX THE CRASH: Pad the split mask to account for the newly cloned points!
+        if clone_mask.any():
+            num_new_clones = clone_mask.sum().item()
+            pad = torch.zeros(num_new_clones, dtype=torch.bool, device="cuda")
+            split_mask = torch.cat([split_mask, pad])
+
+        # 5. Split the large Gaussians
+        self._split_gaussians(split_mask, optimizer)
+
+        # 6. Prune nearly transparent AND excessively large Gaussians
+        # Re-calculate max_scales because the arrays just changed size!
+        current_max_scales = torch.max(self.model.get_scaling, dim=1).values
         opacity_mask = (self.model.get_opacity < self.opacity_threshold).squeeze()
         
-        # FIX: Kill the spikes! If a splat scales larger than a physical threshold, destroy it.
-        # Based on your config, this limits splats to roughly 0.5 meters wide.
+        # Kill the spikes (anything over 0.5 meters)
         max_scale_limit = 0.5
-        scale_mask = (torch.max(self.model.get_scaling, dim=1).values > max_scale_limit).squeeze()
+        scale_mask = (current_max_scales > max_scale_limit).squeeze()
         
-        # Combine the masks: Prune if it's invisible OR if it's a giant needle
         prune_mask = torch.logical_or(opacity_mask, scale_mask)
-        
         self._prune_gaussians(prune_mask, optimizer)
 
-        # Reset accumulators after density update
+        # Reset accumulators
         self.xyz_gradient_accum = torch.zeros((self.model.get_xyz.shape[0], 1), device="cuda")
         self.denom = torch.zeros((self.model.get_xyz.shape[0], 1), device="cuda")
 
