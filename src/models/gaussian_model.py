@@ -73,11 +73,9 @@ class GaussianModel(nn.Module):
 
     @property
     def get_scaling(self):
-        # Exponentiate to ensure scales are strictly positive
         scales = torch.exp(self._scaling)
-        
-        # The Goldilocks clamp: Max size of 0.5 meters
-        return torch.clamp(scales, max=0.5)
+        # The ultimate safety net: No splat can exceed 1 meter in size
+        return torch.clamp(scales, max=1.0)
 
     @property
     def get_rotation(self):

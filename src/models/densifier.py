@@ -45,7 +45,7 @@ class Densifier:
         
         # FIX: Kill the spikes! If a splat scales larger than a physical threshold, destroy it.
         # Based on your config, this limits splats to roughly 0.5 meters wide.
-        max_scale_limit = self.percent_dense * self.spatial_extent * 5.0 
+        max_scale_limit = 0.5
         scale_mask = (torch.max(self.model.get_scaling, dim=1).values > max_scale_limit).squeeze()
         
         # Combine the masks: Prune if it's invisible OR if it's a giant needle

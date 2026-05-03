@@ -19,7 +19,7 @@ class SplatTrainer:
         self.xyz_lr_init = 0.00016
         self.xyz_lr_final = 0.0000016 # Decay to 1% of initial value
         
-        # Define learning rates dynamically from config
+        # Define learning rates for each parameter group
         self.optimizer = torch.optim.Adam([
             {'params': [self.model._xyz], 'lr': self.xyz_lr_init, "name": "xyz"},
             {'params': [self.model._features_dc], 'lr': self.config['training']['lr_f_dc'], "name": "f_dc"},
@@ -79,6 +79,33 @@ class SplatTrainer:
             self.optimizer.step()
             self.optimizer.zero_grad(set_to_none=True)
             
+            # --- LIVE PREVIEW SCRIPT ---
+            if iteration % 1000 == 0:
+                import matplotlib.pyplot as plt
+                from IPython.display import clear_output
+                
+                with torch.no_grad():
+                    # Format tensors for matplotlib (H, W, C)
+                    render_np = pred_image.permute(1, 2, 0).detach().cpu().numpy()
+                    gt_np = gt_image.permute(1, 2, 0).detach().cpu().numpy()
+                    
+                    # Clear the previous image so it looks like a live feed
+                    clear_output(wait=True)
+                    
+                    # Create a side-by-side comparison
+                    fig, axes = plt.subplots(1, 2, figsize=(14, 5))
+                    
+                    axes[0].set_title(f"Ground Truth (Target)")
+                    axes[0].imshow(gt_np)
+                    axes[0].axis('off')
+                    
+                    axes[1].set_title(f"Live Splat Render (Iteration: {iteration})")
+                    axes[1].imshow(render_np)
+                    axes[1].axis('off')
+                    
+                    plt.show()
+            # ---------------------------
+            
             # Fetch the current decayed LR to show in the progress bar
             current_xyz_lr = self.optimizer.param_groups[0]['lr']
             progress_bar.set_postfix({
@@ -115,7 +142,7 @@ class SplatTrainer:
         xys, depths, radii, conics, comp, num_tiles_hit, cov3d = project_gaussians(
             means3D, scales, 1.0, rotations, viewmat, 
             fx, fy, cx, cy, camera.image_height, camera.image_width, 
-            block_width=16, clip_thresh=0.01
+            block_width=16, clip_thresh=0.2
         )
         xys.retain_grad()
         

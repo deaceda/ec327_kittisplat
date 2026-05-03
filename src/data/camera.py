@@ -6,7 +6,7 @@ class MiniCam:
     """
     A lightweight PyTorch camera class designed to feed into gsplat's rasterizer.
     """
-    def __init__(self, width, height, R, T, fx, fy, cx, cy, znear=0.01, zfar=100.0, device="cuda"):
+    def __init__(self, width, height, R, T, fx, fy, cx, cy, znear=0.2, zfar=100.0, device="cuda"):
         self.image_width = width
         self.image_height = height
         
