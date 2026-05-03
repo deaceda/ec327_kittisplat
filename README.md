@@ -1,5 +1,3 @@
-# EC327 KITTI_splat
-
 # KITTI Splat: High-Fidelity Street Reconstruction
 
 This repository contains a 3D Gaussian Splatting (3DGS) pipeline optimized for the sparse KITTI autonomous driving dataset. It uses sensor fusion and semantic AI masking to reconstruct a stable, high-fidelity 3D street scene.
