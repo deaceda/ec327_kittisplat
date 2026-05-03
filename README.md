@@ -14,7 +14,7 @@ Because this project relies on heavy GPU computation, everything is orchestrated
 
 1. **Upload the Repository:** Download or clone this repository to your local machine using your terminal:
    ```bash
-   git clone [https://github.com/deaceda/ec327_kittisplat.git](https://github.com/deaceda/ec327_kittisplat.git) KITTI_Project
+   git clone https://github.com/deaceda/ec327_kittisplat.git KITTI_Project
 
 and then upload the entire `KITTI_Project` folder to your Google Drive. (Placing it in the root of your `MyDrive` is recommended).
 
