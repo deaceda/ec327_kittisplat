@@ -24,7 +24,7 @@ The project requires the **synced** KITTI dataset (specifically Residential Driv
 Once your data is prepared and masked, you can start the 3D Gaussian Splatting optimizer.
 
 1. In Google Colab, open **`main_notebook.ipynb`**.
-2. Ensure your hardware accelerator is set to GPU (*Runtime > Change runtime type > Hardware accelerator: GPU*).
+2. Ensure your hardware accelerator is set to GPU (*Runtime > Change runtime type > Hardware accelerator: GPU*). During out runs, we used an L4 and finished training in approximately twenty minuntes. 
 3. Run the cells sequentially.
 
 **What the notebook does:**
